@@ -17,8 +17,8 @@ pub struct Image {
 }
 
 impl Default for Image {
-    fn default() -> self {
-        Self {
+    fn default() -> Self {
+        Image {
             id: 0,
             created_by: String::from(""),
             title: String::from(""),
@@ -50,14 +50,15 @@ pub struct SimpleImageMuseum {
 }
 
 impl Default for SimpleImageMuseum {
-    fn default() -> self {
+    fn default() -> Self {
         Self {
-            museums: UnorderedMap::new(b"u".to_vect()),
-            images: UnorderedMap::new(b"e".to_vect()),
+            museums: UnorderedMap::new(b"u".to_vec()),
+            images: UnorderedMap::new(b"e".to_vec()),
         }
     }
 }
 
+#[near_bindgen]
 impl SimpleImageMuseum {
     pub fn create_image(&mut self, title: String, url: String, museum: String) {
         let image = Image::new(
@@ -92,7 +93,7 @@ impl SimpleImageMuseum {
     }
 
     pub fn get_images_list(&self) -> Vec<(u64, Image)> {
-        self.images.to_vect()
+        self.images.to_vec()
     }
 
     pub fn get_museums_list(&self) -> Vec<String> {
@@ -100,12 +101,12 @@ impl SimpleImageMuseum {
     }
 
     pub fn get_images_of_museum(&self, museum: String) -> Vec<Image> {
-        let _museum = slef.museums.get(&museum);
+        let _museum = self.museums.get(&museum);
 
         if _museum.is_some() {
             let mut images_list = Vec::new();
 
-            for image in &museum.unwrap() {
+            for image in &_museum.unwrap() {
                 let m = self.images.get(image);
                 if m.is_some() {
                     images_list.push(m.unwrap());
@@ -125,10 +126,10 @@ impl SimpleImageMuseum {
             "You must add NEAR to make a deposit"
         );
 
-        match self.iamges.get(&id) {
+        match self.images.get(&id) {
             Some(mut image) => {
                 image.donations += env::attached_deposit();
-                self.images.insert(&image, id, &image);
+                self.images.insert(&id, &image);
 
                 Promise::new(String::from(&image.created_by)).transfer(env::attached_deposit());
 
